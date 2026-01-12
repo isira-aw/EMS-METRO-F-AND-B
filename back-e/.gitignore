@@ -1,0 +1,74 @@
+################################
+# Spring Boot / Maven
+################################
+target/
+.mvn/
+mvnw
+mvnw.cmd
+*.jar
+*.war
+*.ear
+*.log
+
+################################
+# Environment Variables
+################################
+.env
+.env.*
+!.env.example
+
+################################
+# IDEs
+################################
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+
+# Eclipse / STS
+.project
+.classpath
+.settings/
+.springBeans
+
+################################
+# OS Generated Files
+################################
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+################################
+# Logs & Temp Files
+################################
+logs/
+*.log
+tmp/
+*.tmp
+
+################################
+# Build & Test Reports
+################################
+surefire-reports/
+failsafe-reports/
+coverage/
+jacoco/
+
+################################
+# Node (if frontend exists)
+################################
+node_modules/
+dist/
+build/
+
+################################
+# Docker (optional)
+################################
+*.pid

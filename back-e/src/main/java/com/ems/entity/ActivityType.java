@@ -1,0 +1,18 @@
+package com.ems.entity;
+
+public enum ActivityType {
+    DAY_START,
+    DAY_END,
+    STATUS_UPDATE,
+    JOB_APPROVED,
+    JOB_REJECTED,
+    JOB_ASSIGNED,
+    JOB_CREATED,
+    USER_CREATED,
+    USER_UPDATED,
+    USER_ACTIVATED,
+    USER_DEACTIVATED,
+    TICKET_CREATED,
+    TICKET_UPDATED,
+    OTHER
+}

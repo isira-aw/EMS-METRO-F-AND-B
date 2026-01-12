@@ -1,0 +1,383 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   METROPOLITAN EMS - DESIGN SYSTEM
+   Corporate Color Theme
+   Primary: #144A92 | Secondary: #3F6FB5
+   ============================================ */
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #F4F6F8;
+  color: #000000;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+/* Primary Button - Corporate Blue */
+.btn-primary {
+  @apply bg-corporate-blue text-white px-4 py-2 rounded-lg font-medium;
+  @apply hover:bg-[#0F3A7A] transition-colors duration-200;
+  @apply disabled:bg-soft-blue disabled:cursor-not-allowed;
+}
+
+/* Secondary/Text Button - Soft Blue */
+.btn-secondary {
+  @apply text-corporate-blue px-4 py-2 rounded-lg font-medium;
+  @apply hover:text-soft-blue hover:bg-[#E8F0FB] transition-colors duration-200;
+}
+
+/* Success Button - Corporate Blue (consistent theme) */
+.btn-success {
+  @apply bg-soft-blue text-white px-4 py-2 rounded-lg font-medium;
+  @apply hover:bg-corporate-blue transition-colors duration-200;
+  @apply disabled:bg-[#A0BFE0] disabled:cursor-not-allowed;
+}
+
+/* Danger Button - Red action */
+.btn-danger {
+  @apply bg-red-600 text-white px-4 py-2 rounded-lg font-medium;
+  @apply hover:bg-red-700 transition-colors duration-200;
+  @apply disabled:bg-red-400 disabled:cursor-not-allowed;
+}
+
+/* ============================================
+   INPUT FIELDS
+   ============================================ */
+
+.input-field {
+  @apply w-full px-3 py-2 rounded-lg border border-slate-300 text-sm text-pure-black bg-white;
+  @apply focus:outline-none focus:ring-2 focus:ring-corporate-blue focus:border-transparent;
+  @apply transition-all duration-200;
+}
+
+/* Error state input */
+.input-field-error {
+  @apply w-full px-3 py-2 rounded-lg text-sm;
+  @apply border border-red-300 bg-red-50;
+  @apply focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent;
+}
+
+/* Input label */
+.input-label {
+  @apply text-sm font-medium text-pure-black mb-1 block;
+}
+
+/* ============================================
+   CARDS & CONTAINERS
+   ============================================ */
+
+.card {
+  @apply bg-white shadow-md rounded-lg p-6 border border-slate-200;
+}
+
+/* Modal container */
+.modal-container {
+  @apply bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+.page-title {
+  @apply text-3xl font-bold text-pure-black;
+}
+
+.section-title {
+  @apply text-xl font-semibold text-pure-black;
+}
+
+.body-text {
+  @apply text-sm text-pure-black;
+}
+
+.muted-text {
+  @apply text-sm text-slate-500;
+}
+
+/* ============================================
+   TABLES
+   ============================================ */
+
+.table-container {
+  @apply w-full overflow-x-auto;
+}
+
+.table {
+  @apply w-full border-collapse;
+}
+
+.table thead {
+  @apply bg-light-bg;
+}
+
+.table th {
+  @apply px-4 py-3 text-left text-pure-black font-semibold text-sm;
+}
+
+.table tbody tr {
+  @apply border-b border-slate-200 bg-white;
+  @apply hover:bg-[#E8F0FB] transition-colors duration-150;
+}
+
+.table td {
+  @apply px-4 py-3 text-sm text-pure-black;
+}
+
+/* ============================================
+   DROPDOWNS
+   ============================================ */
+
+.dropdown {
+  @apply bg-white rounded-lg shadow-lg border border-slate-200;
+}
+
+.dropdown-item {
+  @apply px-4 py-2 text-sm text-pure-black;
+  @apply hover:bg-[#E8F0FB] cursor-pointer transition-colors duration-150;
+}
+
+/* ============================================
+   ERROR STATES
+   ============================================ */
+
+.error-container {
+  @apply bg-red-50 border border-red-200 rounded-lg p-4;
+}
+
+.error-text {
+  @apply text-red-700 text-sm;
+}
+
+.error-title {
+  @apply text-red-700 font-semibold text-sm;
+}
+
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+
+.empty-state {
+  @apply flex flex-col items-center justify-center py-12 text-center;
+}
+
+.empty-state-icon {
+  @apply text-slate-300 mb-4;
+}
+
+.empty-state-text {
+  @apply text-slate-500 text-sm mb-2;
+}
+
+.empty-state-action {
+  @apply text-corporate-blue text-sm hover:text-soft-blue;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Stat card with colored left border */
+.stat-card {
+  @apply bg-white shadow-md rounded-lg p-6 border-l-4;
+}
+
+/* Form group spacing */
+.form-group {
+  @apply mb-4;
+}
+
+/* Action button group */
+.action-buttons {
+  @apply flex gap-2 justify-end;
+}
+
+/* ============================================
+   SIDEBAR & LAYOUT ENHANCEMENTS
+   ============================================ */
+
+/* Smooth scrollbar styling for sidebar */
+aside::-webkit-scrollbar {
+  width: 6px;
+}
+
+aside::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+aside::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+aside::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Page transitions */
+main {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced shadow utilities */
+.shadow-soft {
+  box-shadow: 0 2px 8px rgba(20, 74, 146, 0.08);
+}
+
+.shadow-medium {
+  box-shadow: 0 4px 16px rgba(20, 74, 146, 0.12);
+}
+
+.shadow-strong {
+  box-shadow: 0 8px 24px rgba(20, 74, 146, 0.16);
+}
+
+/* Card hover effect */
+.card-hover {
+  @apply transition-all duration-300;
+}
+
+.card-hover:hover {
+  box-shadow: 0 4px 16px rgba(20, 74, 146, 0.12);
+  transform: translateY(-4px);
+}
+
+/* Backdrop blur effect */
+.backdrop-blur {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Focus ring with brand color */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-corporate-blue focus:ring-offset-2;
+}
+
+/* Glassmorphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+/* ============================================
+   MOBILE OPTIMIZATIONS
+   ============================================ */
+
+/* Hide scrollbar for mobile horizontal scroll areas */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Touch-friendly active state */
+.active\:scale-98:active {
+  transform: scale(0.98);
+}
+
+.active\:scale-95:active {
+  transform: scale(0.95);
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Remove tap highlight on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Better text rendering on mobile */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Prevent text size adjustment on mobile */
+@media screen and (max-width: 768px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Safe area padding for mobile devices (notches, etc) */
+@supports (padding: max(0px)) {
+  .safe-area-padding {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+/* Optimize for touch scrolling */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Mobile-friendly button sizes (44x44px minimum for touch) */
+@media screen and (max-width: 768px) {
+  button,
+  .btn-primary,
+  .btn-secondary,
+  .btn-success,
+  .btn-danger {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
