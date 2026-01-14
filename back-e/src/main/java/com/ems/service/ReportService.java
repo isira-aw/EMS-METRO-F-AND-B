@@ -891,8 +891,10 @@ public class ReportService {
                         .filter(jc -> jc.getStatus() == JobStatus.COMPLETED)
                         .mapToInt(jc -> {
                             List<EmployeeScore> scores = employeeScoreRepository
-                                    .findByMiniJobCard(jc);
-                            return scores.stream().mapToInt(EmployeeScore::getScore).sum();
+                                    .findByMiniJobCardId(jc.getId())
+                                    .map(List::of)
+                                    .orElse(List.of());
+                            return scores.stream().mapToInt(EmployeeScore::getWeight).sum();
                         })
                         .sum();
 
@@ -1057,8 +1059,10 @@ public class ReportService {
                 }
 
                 // Get score/weight for this job
-                List<EmployeeScore> scores = employeeScoreRepository.findByMiniJobCard(jobCard);
-                int weight = scores.stream().mapToInt(EmployeeScore::getScore).sum();
+                List<EmployeeScore> scores = employeeScoreRepository.findByMiniJobCardId(jobCard.getId())
+                        .map(List::of)
+                        .orElse(List.of());
+                int weight = scores.stream().mapToInt(EmployeeScore::getWeight).sum();
                 boolean scored = !scores.isEmpty();
 
                 // Update daily totals
@@ -1080,7 +1084,7 @@ public class ReportService {
                                 .mainTicketId(jobCard.getMainTicket().getId())
                                 .ticketNumber(jobCard.getMainTicket().getTicketNumber())
                                 .ticketTitle(jobCard.getMainTicket().getTitle())
-                                .jobType(jobCard.getJobType().name())
+                                .jobType(jobCard.getMainTicket().getType().name())
                                 .generatorName(jobCard.getMainTicket().getGenerator().getName())
                                 .generatorModel(jobCard.getMainTicket().getGenerator().getModel())
                                 .generatorLocation(jobCard.getMainTicket().getGenerator().getLocationName())
