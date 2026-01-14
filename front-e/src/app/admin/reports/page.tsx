@@ -22,8 +22,11 @@ import {
   ChevronRight,
   BarChart3,
   Map,
-  ExternalLink
+  ExternalLink,
+  Download
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function AdminReports() {
   const [loading, setLoading] = useState(true);
@@ -117,6 +120,122 @@ export default function AdminReports() {
       .map(point => `${point.latitude},${point.longitude}`)
       .join('/');
     return `https://www.google.com/maps/dir/${coords}`;
+  };
+
+  const formatMinutesAsDecimal = (minutes: number): string => {
+    if (!minutes || minutes === 0) return '0.0h';
+    const hours = (minutes / 60).toFixed(1);
+    return `${hours}h`;
+  };
+
+  const downloadReport1PDF = () => {
+    const doc = new jsPDF();
+
+    // Add title
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Daily Time Tracking Report', 14, 20);
+
+    // Add date range
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Period: ${formatDateLabel(startDate)} - ${formatDateLabel(endDate)}`, 14, 28);
+
+    // Prepare table data
+    const tableData = timeTrackingReport.map(row => [
+      row.employeeName,
+      formatDateLabel(row.date),
+      `${formatTime(row.startTime)} - ${formatTime(row.endTime)}`,
+      row.location || 'N/A',
+      formatMinutesAsDecimal(row.dailyWorkingMinutes),
+      formatMinutesAsDecimal(row.idleMinutes),
+      formatMinutesAsDecimal(row.travelMinutes),
+      formatMinutesAsDecimal(row.totalMinutes)
+    ]);
+
+    // Generate table
+    autoTable(doc, {
+      startY: 35,
+      head: [['Employee', 'Date', 'Shift', 'Location', 'Working', 'Idle', 'Travel', 'Total']],
+      body: tableData,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [37, 99, 235], fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 30 },
+        1: { cellWidth: 25 },
+        2: { cellWidth: 35 },
+        3: { cellWidth: 25 },
+        4: { cellWidth: 18 },
+        5: { cellWidth: 18 },
+        6: { cellWidth: 18 },
+        7: { cellWidth: 18 }
+      }
+    });
+
+    // Save the PDF
+    doc.save(`Daily_Time_Tracking_Report_${startDate}_to_${endDate}.pdf`);
+  };
+
+  const downloadReport2PDF = () => {
+    const doc = new jsPDF();
+
+    // Add title
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Performance & OT Report', 14, 20);
+
+    // Add date range and employee info
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const employeeName = employees.find(e => e.id.toString() === selectedEmployee)?.fullName || 'Unknown';
+    doc.text(`Employee: ${employeeName}`, 14, 28);
+    doc.text(`Period: ${formatDateLabel(startDate)} - ${formatDateLabel(endDate)}`, 14, 34);
+
+    // Add summary statistics
+    const totalDays = workTimeReport.length;
+    const totalWork = formatMinutesAsDecimal(workTimeReport.reduce((sum, r) => sum + r.workingMinutes, 0));
+    const totalOT = formatMinutesAsDecimal(workTimeReport.reduce((sum, r) => sum + r.totalOtMinutes, 0));
+    const totalWeight = workTimeReport.reduce((sum, r) => sum + r.totalWeightEarned, 0);
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Summary:', 14, 44);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total Days: ${totalDays} | Active Duty: ${totalWork} | Total OT: ${totalOT} | Weight Score: ${totalWeight} pts`, 14, 50);
+
+    // Prepare table data
+    const tableData = workTimeReport.map(row => [
+      formatDateLabel(row.date),
+      formatTime(row.startTime),
+      formatTime(row.endTime),
+      formatMinutesAsDecimal(row.morningOtMinutes),
+      formatMinutesAsDecimal(row.eveningOtMinutes),
+      formatMinutesAsDecimal(row.workingMinutes),
+      `${row.totalWeightEarned} pts`
+    ]);
+
+    // Generate table
+    autoTable(doc, {
+      startY: 57,
+      head: [['Date', 'Time In', 'Time Out', 'Morning OT', 'Evening OT', 'Work Hours', 'Weight']],
+      body: tableData,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [37, 99, 235], fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 28 },
+        1: { cellWidth: 24 },
+        2: { cellWidth: 24 },
+        3: { cellWidth: 24 },
+        4: { cellWidth: 24 },
+        5: { cellWidth: 24 },
+        6: { cellWidth: 24 }
+      }
+    });
+
+    // Save the PDF
+    doc.save(`Performance_OT_Report_${employeeName}_${startDate}_to_${endDate}.pdf`);
   };
 
   if (loading) return <LoadingSpinner />;
@@ -223,7 +342,21 @@ export default function AdminReports() {
                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{formatDateLabel(startDate)} — {formatDateLabel(endDate)}</p>
                    </div>
                 </div>
-                <button onClick={() => { setShowReport1(false); setShowReport2(false); }} className="p-3 hover:bg-white rounded-2xl transition-colors shadow-sm text-slate-400 hover:text-red-500"><X size={24} /></button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={showReport1 ? downloadReport1PDF : downloadReport2PDF}
+                    className="flex items-center gap-2 px-5 py-3 bg-corporate-blue text-white rounded-xl hover:bg-blue-700 transition-colors shadow-md font-black text-xs uppercase"
+                  >
+                    <Download size={18} />
+                    Download PDF
+                  </button>
+                  <button
+                    onClick={() => { setShowReport1(false); setShowReport2(false); }}
+                    className="p-3 hover:bg-white rounded-2xl transition-colors shadow-sm text-slate-400 hover:text-red-500"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
               </div>
 
               {/* Report 1 Table */}
