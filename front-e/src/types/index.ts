@@ -304,6 +304,81 @@ export interface EmployeeDailyWorkTimeReportDTO {
   jobsCompleted: number;
 }
 
+// ===========================
+// NEW COMPREHENSIVE REPORTS
+// ===========================
+
+export interface DailyTimeTrackingAndPerformanceReportDTO {
+  employeeId: number;
+  employeeName: string;
+  date: string;
+  startTime?: string;
+  endTime?: string;
+  location: string;
+  dailyWorkingMinutes: number;
+  idleMinutes: number;
+  travelMinutes: number;
+  totalMinutes: number;
+  morningOtMinutes: number;
+  eveningOtMinutes: number;
+  totalOtMinutes: number;
+  jobsCompleted: number;
+  totalWeightEarned: number;
+  averageScore: number;
+  locationPath?: LocationPoint[];
+}
+
+export interface EmployeeAchievementReportDTO {
+  employeeId: number;
+  employeeName: string;
+  date: string;
+  dayStartTime?: string;
+  dayEndTime?: string;
+  dailySummary: DailySummary;
+  ticketAchievements: TicketAchievement[];
+}
+
+export interface DailySummary {
+  totalTickets: number;
+  completedTickets: number;
+  pendingTickets: number;
+  totalWorkMinutes: number;
+  totalTravelMinutes: number;
+  totalIdleMinutes: number;
+  totalWeightEarned: number;
+  morningOtMinutes: number;
+  eveningOtMinutes: number;
+  totalOtMinutes: number;
+}
+
+export interface TicketAchievement {
+  miniJobCardId: number;
+  mainTicketId: number;
+  ticketNumber: string;
+  ticketTitle: string;
+  jobType: string;
+  generatorName: string;
+  generatorModel: string;
+  generatorLocation: string;
+  startTime?: string;
+  endTime?: string;
+  workMinutes: number;
+  travelMinutes: number;
+  idleMinutes: number;
+  currentStatus: string;
+  weight: number;
+  scored: boolean;
+  approved: boolean;
+  statusBreakdown: StatusDuration[];
+}
+
+export interface StatusDuration {
+  status: string;
+  minutes: number;
+  startTime: string;
+  endTime: string;
+}
+
 export interface DashboardStats {
   totalEmployees: number;
   activeEmployees: number;
