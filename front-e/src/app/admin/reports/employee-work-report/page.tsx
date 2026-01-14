@@ -23,7 +23,11 @@ import {
   Star,
   CheckCircle,
   AlertCircle,
+  Download,
+  Printer,
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function EmployeeWorkReportPage() {
   const [employees, setEmployees] = useState<User[]>([]);
@@ -85,6 +89,133 @@ export default function EmployeeWorkReportPage() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const formatMinutesAsDecimal = (minutes: number): string => {
+    if (!minutes || minutes === 0) return '0.0h';
+    const hours = (minutes / 60).toFixed(1);
+    return `${hours}h`;
+  };
+
+  const handleDownloadPDF = () => {
+    if (!report) return;
+
+    const doc = new jsPDF();
+    let yPosition = 20;
+
+    // Title
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Employee Work Report', 14, yPosition);
+    yPosition += 8;
+
+    // Employee Info
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Employee: ${report.employeeName}`, 14, yPosition);
+    yPosition += 5;
+    doc.text(`Period: ${formatDate(report.reportStartDate)} - ${formatDate(report.reportEndDate)}`, 14, yPosition);
+    yPosition += 10;
+
+    // Summary Section
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Summary', 14, yPosition);
+    yPosition += 6;
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total Days Worked: ${report.summary.totalDaysWorked}`, 14, yPosition);
+    yPosition += 5;
+    doc.text(`Total Work Hours: ${formatMinutesAsDecimal(report.summary.totalWorkMinutes)}`, 14, yPosition);
+    yPosition += 5;
+    doc.text(`Total OT: ${formatMinutesAsDecimal(report.summary.totalOtMinutes)}`, 14, yPosition);
+    yPosition += 5;
+    doc.text(`Total Weight Earned: ${report.summary.totalWeightEarned} pts`, 14, yPosition);
+    yPosition += 5;
+    doc.text(`Overall Average Score: ${report.summary.overallAverageScore.toFixed(2)} / 10`, 14, yPosition);
+    yPosition += 10;
+
+    // Daily Records Table
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Daily Records', 14, yPosition);
+    yPosition += 6;
+
+    const dailyTableData = report.dailyRecords.map((day: DailyWorkRecord) => [
+      formatDate(day.date),
+      day.checkInTime ? new Date(day.checkInTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A',
+      day.checkOutTime ? new Date(day.checkOutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A',
+      formatMinutesAsDecimal(day.totalWorkMinutes),
+      formatMinutesAsDecimal(day.totalOtMinutes),
+      day.dailyScore,
+      day.dailyAverageScore ? day.dailyAverageScore.toFixed(1) : 'N/A'
+    ]);
+
+    autoTable(doc, {
+      startY: yPosition,
+      head: [['Date', 'Check In', 'Check Out', 'Work', 'OT', 'Score', 'Avg']],
+      body: dailyTableData,
+      theme: 'grid',
+      styles: { fontSize: 7, cellPadding: 2 },
+      headStyles: { fillColor: [37, 99, 235], fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 28 },
+        1: { cellWidth: 22 },
+        2: { cellWidth: 22 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 18 },
+        6: { cellWidth: 18 }
+      }
+    });
+
+    // Jobs Completed Section
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    if (finalY < 270) {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Jobs Summary', 14, finalY);
+
+      const jobsTableData = report.dailyRecords.flatMap((day: DailyWorkRecord) =>
+        day.jobs.map(job => [
+          formatDate(day.date),
+          job.ticketNumber,
+          job.generator,
+          job.jobType,
+          formatMinutesAsDecimal(job.workMinutes),
+          `${job.score} pts`
+        ])
+      ).slice(0, 15); // Limit to first 15 jobs to fit on page
+
+      autoTable(doc, {
+        startY: finalY + 5,
+        head: [['Date', 'Ticket #', 'Generator', 'Type', 'Work Time', 'Score']],
+        body: jobsTableData,
+        theme: 'grid',
+        styles: { fontSize: 7, cellPadding: 2 },
+        headStyles: { fillColor: [37, 99, 235], fontStyle: 'bold' },
+        columnStyles: {
+          0: { cellWidth: 25 },
+          1: { cellWidth: 28 },
+          2: { cellWidth: 35 },
+          3: { cellWidth: 30 },
+          4: { cellWidth: 22 },
+          5: { cellWidth: 22 }
+        }
+      });
+
+      if (report.dailyRecords.flatMap(d => d.jobs).length > 15) {
+        const footnoteY = (doc as any).lastAutoTable.finalY + 5;
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'italic');
+        doc.text('Note: Showing first 15 jobs only. Full details available in the web interface.', 14, footnoteY);
+      }
+    }
+
+    // Save PDF
+    const employeeName = report.employeeName.replace(/\s+/g, '_');
+    doc.save(`Employee_Work_Report_${employeeName}_${report.reportStartDate}_to_${report.reportEndDate}.pdf`);
   };
 
   return (
@@ -194,12 +325,22 @@ export default function EmployeeWorkReportPage() {
                   {formatDate(report.reportEndDate)}
                 </p>
               </div>
-              <button
-                onClick={handlePrint}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 print:hidden"
-              >
-                Print Report
-              </button>
+              <div className="flex gap-3 print:hidden">
+                <button
+                  onClick={handleDownloadPDF}
+                  className="flex items-center gap-2 px-4 py-2 bg-corporate-blue text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  <Download size={18} />
+                  Download PDF
+                </button>
+                <button
+                  onClick={handlePrint}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                >
+                  <Printer size={18} />
+                  Print Report
+                </button>
+              </div>
             </div>
 
             {/* Summary Statistics */}
