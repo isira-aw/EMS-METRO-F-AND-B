@@ -181,7 +181,7 @@ export default function EmployeeWorkReportPage() {
         day.jobs.map(job => [
           formatDate(day.date),
           job.ticketNumber || 'N/A',
-          job.generator || 'N/A',
+          job.generatorName || 'N/A',
           job.jobType || 'N/A',
           formatMinutesAsDecimal(job.workMinutes),
           job.scored ? `${job.weight} pts` : 'Not scored'
