@@ -837,4 +837,295 @@ public class ReportService {
 
         return reports;
     }
+
+    /**
+     * Get Daily Time Tracking and Performance Report (Merged Report)
+     * Combines time tracking metrics with OT and performance data
+     */
+    public List<DailyTimeTrackingAndPerformanceReportDTO> getDailyTimeTrackingAndPerformanceReport(
+            Long employeeId, LocalDate startDate, LocalDate endDate) {
+
+        List<User> employees;
+        if (employeeId != null) {
+            User emp = userRepository.findById(employeeId)
+                    .orElseThrow(() -> new RuntimeException("Employee not found"));
+            employees = List.of(emp);
+        } else {
+            employees = userRepository.findByRole(UserRole.EMPLOYEE,
+                    org.springframework.data.domain.Pageable.unpaged()).getContent();
+        }
+
+        List<DailyTimeTrackingAndPerformanceReportDTO> reports = new ArrayList<>();
+
+        for (User employee : employees) {
+            List<EmployeeDayAttendance> attendances = attendanceRepository
+                    .findByEmployeeAndDateBetween(employee, startDate, endDate);
+
+            for (EmployeeDayAttendance attendance : attendances) {
+                LocalDate date = attendance.getDate();
+
+                // Get all job cards for this employee on this date
+                List<MiniJobCard> jobCards = miniJobCardRepository
+                        .findByEmployee(employee, org.springframework.data.domain.Pageable.unpaged())
+                        .getContent()
+                        .stream()
+                        .filter(jc -> jc.getStartTime() != null &&
+                                jc.getStartTime().toLocalDate().equals(date))
+                        .collect(Collectors.toList());
+
+                // Calculate time metrics from job status logs
+                int totalWorkMinutes = 0;
+                int totalIdleMinutes = 0;
+                int totalTravelMinutes = 0;
+                String location = "";
+                List<DailyTimeTrackingAndPerformanceReportDTO.LocationPoint> locationPath = new ArrayList<>();
+
+                // Performance metrics
+                long jobsCompleted = jobCards.stream()
+                        .filter(jc -> jc.getStatus() == JobStatus.COMPLETED)
+                        .count();
+
+                int totalWeightEarned = jobCards.stream()
+                        .filter(jc -> jc.getStatus() == JobStatus.COMPLETED)
+                        .mapToInt(jc -> {
+                            List<EmployeeScore> scores = employeeScoreRepository
+                                    .findByMiniJobCard(jc);
+                            return scores.stream().mapToInt(EmployeeScore::getScore).sum();
+                        })
+                        .sum();
+
+                double averageScore = jobsCompleted > 0 ? (double) totalWeightEarned / jobsCompleted : 0.0;
+
+                for (MiniJobCard jobCard : jobCards) {
+                    List<JobStatusLog> logs = jobStatusLogRepository
+                            .findByMiniJobCardIdOrderByLoggedAtDesc(jobCard.getId());
+
+                    // Get location from logs
+                    if (location.isEmpty() && !logs.isEmpty()) {
+                        for (JobStatusLog log : logs) {
+                            if (log.getLatitude() != null && log.getLongitude() != null) {
+                                location = jobCard.getMainTicket().getGenerator().getLocationName();
+                                break;
+                            }
+                        }
+                    }
+
+                    // Collect location points
+                    List<JobStatusLog> reversedLogs = new ArrayList<>(logs);
+                    Collections.reverse(reversedLogs);
+                    for (JobStatusLog log : reversedLogs) {
+                        if (log.getLatitude() != null && log.getLongitude() != null) {
+                            locationPath.add(DailyTimeTrackingAndPerformanceReportDTO.LocationPoint.builder()
+                                    .latitude(log.getLatitude())
+                                    .longitude(log.getLongitude())
+                                    .timestamp(log.getLoggedAt())
+                                    .build());
+                        }
+                    }
+
+                    // Calculate time in each status
+                    for (int i = logs.size() - 1; i > 0; i--) {
+                        JobStatusLog currentLog = logs.get(i);
+                        JobStatusLog nextLog = logs.get(i - 1);
+
+                        long minutes = java.time.Duration.between(
+                                currentLog.getLoggedAt(), nextLog.getLoggedAt()).toMinutes();
+
+                        if (currentLog.getNewStatus() == JobStatus.STARTED) {
+                            totalWorkMinutes += minutes;
+                        } else if (currentLog.getNewStatus() == JobStatus.ON_HOLD) {
+                            totalIdleMinutes += minutes;
+                        } else if (currentLog.getNewStatus() == JobStatus.TRAVELING) {
+                            totalTravelMinutes += minutes;
+                            totalWorkMinutes += minutes; // Travel also counts as work time
+                        }
+                    }
+                }
+
+                DailyTimeTrackingAndPerformanceReportDTO report = DailyTimeTrackingAndPerformanceReportDTO.builder()
+                        .employeeId(employee.getId())
+                        .employeeName(employee.getFullName())
+                        .date(date)
+                        .startTime(attendance.getDayStartTime())
+                        .endTime(attendance.getDayEndTime())
+                        .location(location.isEmpty() ? "N/A" : location)
+                        .dailyWorkingMinutes(totalWorkMinutes)
+                        .idleMinutes(totalIdleMinutes)
+                        .travelMinutes(totalTravelMinutes)
+                        .totalMinutes(attendance.getTotalWorkMinutes())
+                        .morningOtMinutes(attendance.getMorningOtMinutes())
+                        .eveningOtMinutes(attendance.getEveningOtMinutes())
+                        .totalOtMinutes(attendance.getMorningOtMinutes() + attendance.getEveningOtMinutes())
+                        .jobsCompleted((int) jobsCompleted)
+                        .totalWeightEarned(totalWeightEarned)
+                        .averageScore(averageScore)
+                        .locationPath(locationPath)
+                        .build();
+
+                reports.add(report);
+            }
+        }
+
+        return reports;
+    }
+
+    /**
+     * Get Employee Achievement Report
+     * Shows ticket-level daily progress and achievements
+     */
+    public List<EmployeeAchievementReportDTO> getEmployeeAchievementReport(
+            Long employeeId, LocalDate startDate, LocalDate endDate) {
+
+        if (employeeId == null) {
+            throw new RuntimeException("Employee ID is required for achievement report");
+        }
+
+        User employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        List<EmployeeDayAttendance> attendances = attendanceRepository
+                .findByEmployeeAndDateBetween(employee, startDate, endDate);
+
+        List<EmployeeAchievementReportDTO> reports = new ArrayList<>();
+
+        for (EmployeeDayAttendance attendance : attendances) {
+            LocalDate date = attendance.getDate();
+
+            // Get all job cards for this date
+            List<MiniJobCard> jobCards = miniJobCardRepository
+                    .findByEmployee(employee, org.springframework.data.domain.Pageable.unpaged())
+                    .getContent()
+                    .stream()
+                    .filter(jc -> jc.getStartTime() != null &&
+                            jc.getStartTime().toLocalDate().equals(date))
+                    .collect(Collectors.toList());
+
+            if (jobCards.isEmpty()) {
+                continue; // Skip days with no tickets
+            }
+
+            // Build ticket achievements
+            List<EmployeeAchievementReportDTO.TicketAchievement> ticketAchievements = new ArrayList<>();
+
+            int dailyTotalWorkMinutes = 0;
+            int dailyTotalTravelMinutes = 0;
+            int dailyTotalIdleMinutes = 0;
+            int dailyTotalWeight = 0;
+            int completedCount = 0;
+            int pendingCount = 0;
+
+            for (MiniJobCard jobCard : jobCards) {
+                // Get status logs for this job
+                List<JobStatusLog> logs = jobStatusLogRepository
+                        .findByMiniJobCardIdOrderByLoggedAtDesc(jobCard.getId());
+
+                // Calculate time in each status
+                int workMinutes = 0;
+                int travelMinutes = 0;
+                int idleMinutes = 0;
+                List<EmployeeAchievementReportDTO.StatusDuration> statusBreakdown = new ArrayList<>();
+
+                List<JobStatusLog> reversedLogs = new ArrayList<>(logs);
+                Collections.reverse(reversedLogs);
+
+                for (int i = 0; i < reversedLogs.size() - 1; i++) {
+                    JobStatusLog currentLog = reversedLogs.get(i);
+                    JobStatusLog nextLog = reversedLogs.get(i + 1);
+
+                    long minutes = java.time.Duration.between(
+                            currentLog.getLoggedAt(), nextLog.getLoggedAt()).toMinutes();
+
+                    String status = currentLog.getNewStatus().name();
+
+                    statusBreakdown.add(EmployeeAchievementReportDTO.StatusDuration.builder()
+                            .status(status)
+                            .minutes((int) minutes)
+                            .startTime(currentLog.getLoggedAt())
+                            .endTime(nextLog.getLoggedAt())
+                            .build());
+
+                    if (currentLog.getNewStatus() == JobStatus.STARTED) {
+                        workMinutes += minutes;
+                    } else if (currentLog.getNewStatus() == JobStatus.TRAVELING) {
+                        travelMinutes += minutes;
+                        workMinutes += minutes; // Travel counts as work time
+                    } else if (currentLog.getNewStatus() == JobStatus.ON_HOLD) {
+                        idleMinutes += minutes;
+                    }
+                }
+
+                // Get score/weight for this job
+                List<EmployeeScore> scores = employeeScoreRepository.findByMiniJobCard(jobCard);
+                int weight = scores.stream().mapToInt(EmployeeScore::getScore).sum();
+                boolean scored = !scores.isEmpty();
+
+                // Update daily totals
+                dailyTotalWorkMinutes += workMinutes;
+                dailyTotalTravelMinutes += travelMinutes;
+                dailyTotalIdleMinutes += idleMinutes;
+                dailyTotalWeight += weight;
+
+                if (jobCard.getStatus() == JobStatus.COMPLETED) {
+                    completedCount++;
+                } else {
+                    pendingCount++;
+                }
+
+                // Build ticket achievement
+                EmployeeAchievementReportDTO.TicketAchievement ticketAchievement =
+                        EmployeeAchievementReportDTO.TicketAchievement.builder()
+                                .miniJobCardId(jobCard.getId())
+                                .mainTicketId(jobCard.getMainTicket().getId())
+                                .ticketNumber(jobCard.getMainTicket().getTicketNumber())
+                                .ticketTitle(jobCard.getMainTicket().getTitle())
+                                .jobType(jobCard.getJobType().name())
+                                .generatorName(jobCard.getMainTicket().getGenerator().getName())
+                                .generatorModel(jobCard.getMainTicket().getGenerator().getModel())
+                                .generatorLocation(jobCard.getMainTicket().getGenerator().getLocationName())
+                                .startTime(jobCard.getStartTime())
+                                .endTime(jobCard.getEndTime())
+                                .workMinutes(workMinutes)
+                                .travelMinutes(travelMinutes)
+                                .idleMinutes(idleMinutes)
+                                .currentStatus(jobCard.getStatus().name())
+                                .weight(weight)
+                                .scored(scored)
+                                .approved(jobCard.getApproved())
+                                .statusBreakdown(statusBreakdown)
+                                .build();
+
+                ticketAchievements.add(ticketAchievement);
+            }
+
+            // Build daily summary
+            EmployeeAchievementReportDTO.DailySummary dailySummary =
+                    EmployeeAchievementReportDTO.DailySummary.builder()
+                            .totalTickets(jobCards.size())
+                            .completedTickets(completedCount)
+                            .pendingTickets(pendingCount)
+                            .totalWorkMinutes(dailyTotalWorkMinutes)
+                            .totalTravelMinutes(dailyTotalTravelMinutes)
+                            .totalIdleMinutes(dailyTotalIdleMinutes)
+                            .totalWeightEarned(dailyTotalWeight)
+                            .morningOtMinutes(attendance.getMorningOtMinutes())
+                            .eveningOtMinutes(attendance.getEveningOtMinutes())
+                            .totalOtMinutes(attendance.getMorningOtMinutes() + attendance.getEveningOtMinutes())
+                            .build();
+
+            // Build daily report
+            EmployeeAchievementReportDTO report = EmployeeAchievementReportDTO.builder()
+                    .employeeId(employee.getId())
+                    .employeeName(employee.getFullName())
+                    .date(date)
+                    .dayStartTime(attendance.getDayStartTime())
+                    .dayEndTime(attendance.getDayEndTime())
+                    .dailySummary(dailySummary)
+                    .ticketAchievements(ticketAchievements)
+                    .build();
+
+            reports.add(report);
+        }
+
+        return reports;
+    }
 }
