@@ -1,6 +1,8 @@
 package com.ems.controller;
 
 import com.ems.dto.DailyTimeTrackingReportDTO;
+import com.ems.dto.DailyTimeTrackingAndPerformanceReportDTO;
+import com.ems.dto.EmployeeAchievementReportDTO;
 import com.ems.dto.EmployeeDailyWorkTimeReportDTO;
 import com.ems.dto.OTReportResponse;
 import com.ems.dto.TimeTrackingReportResponse;
@@ -301,6 +303,66 @@ public class AdminReportController {
 
         List<EmployeeDailyWorkTimeReportDTO> report =
             reportService.getEmployeeDailyWorkTimeReport(employeeId, startDate, endDate);
+        return ResponseEntity.ok(report);
+    }
+
+    /**
+     * Get Daily Time Tracking and Performance Report (MERGED REPORT)
+     * Combines time tracking metrics with OT and performance data in one comprehensive report
+     *
+     * Features:
+     * - Work/Idle/Travel time breakdown
+     * - Morning and Evening OT tracking
+     * - Jobs completed and weight earned
+     * - Average performance score
+     * - Location tracking with path visualization
+     *
+     * @param startDate Start date (inclusive)
+     * @param endDate End date (inclusive)
+     * @param employeeId Optional employee filter (null = all employees)
+     * @return List of DailyTimeTrackingAndPerformanceReportDTO
+     */
+    @GetMapping("/daily-time-tracking-and-performance")
+    public ResponseEntity<List<DailyTimeTrackingAndPerformanceReportDTO>> getDailyTimeTrackingAndPerformanceReport(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Long employeeId) {
+
+        List<DailyTimeTrackingAndPerformanceReportDTO> report =
+            reportService.getDailyTimeTrackingAndPerformanceReport(employeeId, startDate, endDate);
+        return ResponseEntity.ok(report);
+    }
+
+    /**
+     * Get Employee Achievement Report
+     * Shows ticket-level daily progress with detailed time tracking per ticket
+     *
+     * This report provides the most granular view of employee daily work:
+     * - Individual ticket details (ID, number, generator, location)
+     * - Time spent on each ticket (work, travel, idle)
+     * - Status breakdown showing time in each status
+     * - Performance scores per ticket
+     * - Daily summary totals
+     *
+     * Use Cases:
+     * - Track individual ticket progress throughout the day
+     * - Analyze how employees distribute time across different tickets
+     * - Identify bottlenecks and productivity patterns
+     * - Detailed time auditing for billing purposes
+     *
+     * @param employeeId Employee ID (required)
+     * @param startDate Start date (inclusive)
+     * @param endDate End date (inclusive)
+     * @return List of EmployeeAchievementReportDTO (one per day with ticket details)
+     */
+    @GetMapping("/employee-achievement/{employeeId}")
+    public ResponseEntity<List<EmployeeAchievementReportDTO>> getEmployeeAchievementReport(
+            @PathVariable Long employeeId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        List<EmployeeAchievementReportDTO> report =
+            reportService.getEmployeeAchievementReport(employeeId, startDate, endDate);
         return ResponseEntity.ok(report);
     }
 }
