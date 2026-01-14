@@ -15,6 +15,8 @@ import {
   TimeTrackingReportResponse,
   OTReportResponse,
   DailyTimeTrackingReportDTO,
+  DailyTimeTrackingAndPerformanceReportDTO,
+  EmployeeAchievementReportDTO,
   EmployeeDailyWorkTimeReportDTO,
   DashboardStats,
   EmployeeWorkReportDTO,
@@ -412,6 +414,42 @@ export const reportService = {
   ): Promise<EmployeeDailyWorkTimeReportDTO[]> {
     const response = await apiClient.get<EmployeeDailyWorkTimeReportDTO[]>(
       `/admin/reports/employee-daily-work-time/${employeeId}`,
+      {
+        params: { startDate, endDate },
+      }
+    );
+    return response.data;
+  },
+
+  /**
+   * Get Daily Time Tracking and Performance Report (Merged Report)
+   * Combines time tracking metrics with OT and performance data
+   */
+  async getDailyTimeTrackingAndPerformance(
+    startDate: string,
+    endDate: string,
+    employeeId?: number
+  ): Promise<DailyTimeTrackingAndPerformanceReportDTO[]> {
+    const response = await apiClient.get<DailyTimeTrackingAndPerformanceReportDTO[]>(
+      '/admin/reports/daily-time-tracking-and-performance',
+      {
+        params: { startDate, endDate, employeeId },
+      }
+    );
+    return response.data;
+  },
+
+  /**
+   * Get Employee Achievement Report
+   * Shows ticket-level daily progress with detailed time tracking per ticket
+   */
+  async getEmployeeAchievement(
+    employeeId: number,
+    startDate: string,
+    endDate: string
+  ): Promise<EmployeeAchievementReportDTO[]> {
+    const response = await apiClient.get<EmployeeAchievementReportDTO[]>(
+      `/admin/reports/employee-achievement/${employeeId}`,
       {
         params: { startDate, endDate },
       }
