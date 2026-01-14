@@ -148,7 +148,7 @@ export default function EmployeeWorkReportPage() {
       day.checkOutTime ? new Date(day.checkOutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A',
       formatMinutesAsDecimal(day.totalWorkMinutes),
       formatMinutesAsDecimal(day.totalOtMinutes),
-      day.dailyScore,
+      day.dailyScore || 0,
       day.dailyAverageScore ? day.dailyAverageScore.toFixed(1) : 'N/A'
     ]);
 
@@ -180,11 +180,11 @@ export default function EmployeeWorkReportPage() {
       const jobsTableData = report.dailyRecords.flatMap((day: DailyWorkRecord) =>
         day.jobs.map(job => [
           formatDate(day.date),
-          job.ticketNumber,
-          job.generator,
-          job.jobType,
+          job.ticketNumber || 'N/A',
+          job.generator || 'N/A',
+          job.jobType || 'N/A',
           formatMinutesAsDecimal(job.workMinutes),
-          `${job.score} pts`
+          job.scored ? `${job.weight} pts` : 'Not scored'
         ])
       ).slice(0, 15); // Limit to first 15 jobs to fit on page
 
