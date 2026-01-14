@@ -721,7 +721,7 @@ export default function AdminReports() {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b-2 border-slate-100">
-                          {['Employee', 'Date', 'Work', 'Travel', 'OT', 'Jobs', 'Weight', 'Avg Score', 'Location Map'].map(h => (
+                          {['Employee', 'Date', 'Work', 'Travel', 'OT', 'Jobs', 'Weight', 'Avg Score'].map(h => (
                             <th key={h} className="pb-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
                               {h}
                             </th>
@@ -729,45 +729,26 @@ export default function AdminReports() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
-                        {mergedReport.map((row, i) => {
-                          const mapUrl = generateMapUrl(row.locationPath);
-                          return (
-                            <tr key={i} className="hover:bg-purple-50/30 transition-colors">
-                              <td className="py-6 text-sm font-black text-slate-900 uppercase">{row.employeeName}</td>
-                              <td className="py-6 text-sm font-bold text-slate-600">{formatDateLabel(row.date)}</td>
-                              <td className="py-6 text-sm font-black text-purple-600">
-                                {formatMinutesLocal(row.dailyWorkingMinutes)}
-                              </td>
-                              <td className="py-6 text-sm font-black text-blue-500">
-                                {formatMinutesLocal(row.travelMinutes)}
-                              </td>
-                              <td className="py-6 text-sm font-black text-orange-500">
-                                {formatMinutesLocal(row.totalOtMinutes)}
-                              </td>
-                              <td className="py-6 text-sm font-black text-corporate-blue">{row.jobsCompleted}</td>
-                              <td className="py-6 text-sm font-black text-green-600">{row.totalWeightEarned}</td>
-                              <td className="py-6 text-sm font-black text-amber-600">
-                                {row.averageScore.toFixed(1)} ⭐
-                              </td>
-                              <td className="py-6">
-                                {mapUrl ? (
-                                  <a
-                                    href={mapUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-black uppercase hover:bg-purple-700 transition-colors shadow-sm"
-                                  >
-                                    <Map size={14} />
-                                    View Path
-                                    <ExternalLink size={12} />
-                                  </a>
-                                ) : (
-                                  <span className="text-xs font-bold text-slate-300 uppercase">No data</span>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
+                        {mergedReport.map((row, i) => (
+                          <tr key={i} className="hover:bg-purple-50/30 transition-colors">
+                            <td className="py-6 text-sm font-black text-slate-900 uppercase">{row.employeeName}</td>
+                            <td className="py-6 text-sm font-bold text-slate-600">{formatDateLabel(row.date)}</td>
+                            <td className="py-6 text-sm font-black text-purple-600">
+                              {formatMinutesLocal(row.dailyWorkingMinutes)}
+                            </td>
+                            <td className="py-6 text-sm font-black text-blue-500">
+                              {formatMinutesLocal(row.travelMinutes)}
+                            </td>
+                            <td className="py-6 text-sm font-black text-orange-500">
+                              {formatMinutesLocal(row.totalOtMinutes)}
+                            </td>
+                            <td className="py-6 text-sm font-black text-corporate-blue">{row.jobsCompleted}</td>
+                            <td className="py-6 text-sm font-black text-green-600">{row.totalWeightEarned}</td>
+                            <td className="py-6 text-sm font-black text-amber-600">
+                              {row.averageScore.toFixed(1)} ⭐
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
