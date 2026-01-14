@@ -131,7 +131,7 @@ export default function EmployeeWorkReportPage() {
     yPosition += 5;
     doc.text(`Total OT: ${formatMinutesAsDecimal(report.summary.totalOtMinutes)}`, 14, yPosition);
     yPosition += 5;
-    doc.text(`Total Weight Earned: ${report.summary.totalWeightEarned} pts`, 14, yPosition);
+    doc.text(`Total Weight Earned: ${report.summary.totalWeight} pts`, 14, yPosition);
     yPosition += 5;
     doc.text(`Overall Average Score: ${report.summary.overallAverageScore.toFixed(2)} / 10`, 14, yPosition);
     yPosition += 10;
