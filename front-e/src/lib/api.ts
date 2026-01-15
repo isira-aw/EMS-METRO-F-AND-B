@@ -28,6 +28,14 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // Handle 403 Forbidden - invalid or insufficient permissions
+    if (error.response?.status === 403) {
+      localStorage.clear();
+      alert('Your session has expired. For security reasons, you will be redirected to the login page. Please sign in again.');
+      window.location.href = '/login';
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401) {
       // Token expired, try to refresh
       const refreshToken = localStorage.getItem('refreshToken');
