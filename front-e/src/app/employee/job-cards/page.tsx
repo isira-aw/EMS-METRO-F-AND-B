@@ -218,7 +218,7 @@ export default function EmployeeJobCards() {
 
                       <div className={`px-4 py-3 flex items-center justify-between border-t border-slate-50 ${card.approved ? 'bg-green-50/30' : 'bg-white'}`}>
                         <span className={`text-xs font-black uppercase ${card.approved ? 'text-green-600' : 'text-slate-400'}`}>
-                          {card.approved ? '✓ Verified' : '○ Pending'}
+                          {card.approved ? '✓ Verified' : '○ Admin did not verify yet'}
                         </span>
                         <ChevronRight size={16} className="text-slate-300 group-hover:text-corporate-blue transition-all" />
                       </div>
