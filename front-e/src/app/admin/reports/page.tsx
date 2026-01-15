@@ -304,6 +304,7 @@ export default function AdminReports() {
     const tableData = mergedReport.map(row => [
       row.employeeName,
       formatDateLabel(row.date),
+      `${formatTime(row.startTime)} - ${formatTime(row.endTime)}`,
       formatMinutesAsDecimal(row.dailyWorkingMinutes),
       formatMinutesAsDecimal(row.totalOtMinutes),
       row.jobsCompleted,
@@ -313,7 +314,7 @@ export default function AdminReports() {
 
     autoTable(doc, {
       startY: 35,
-      head: [['Employee', 'Date', 'Work Time', 'Total OT', 'Jobs', 'Weight', 'Avg Score']],
+      head: [['Employee', 'Date', 'Shift', 'Work Time', 'Total OT', 'Jobs', 'Weight', 'Avg Score']],
       body: tableData,
       theme: 'grid',
       styles: { fontSize: 8, cellPadding: 3 },
