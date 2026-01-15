@@ -446,7 +446,7 @@ export default function AdminReports() {
 
         {/* Report Selection Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <button 
+          {/* <button 
             onClick={handleGenerateReport1}
             disabled={loadingReport1}
             className="group text-left p-8 bg-white border-2 border-slate-100 rounded-[2.5rem] shadow-md hover:shadow-2xl hover:border-corporate-blue transition-all relative overflow-hidden"
@@ -460,9 +460,9 @@ export default function AdminReports() {
             <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">Daily Time Tracking</h3>
             <p className="text-sm font-bold text-slate-400 leading-relaxed uppercase">Log of start/end times, location, and productivity metrics.</p>
             {loadingReport1 && <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center font-black uppercase text-xs">Processing...</div>}
-          </button>
+          </button> */}
 
-          <button
+          {/* <button
             onClick={handleGenerateReport2}
             disabled={loadingReport2 || !selectedEmployee}
             className={`group text-left p-8 bg-white border-2 rounded-[2.5rem] shadow-md transition-all relative overflow-hidden ${!selectedEmployee ? 'opacity-60 cursor-not-allowed grayscale' : 'hover:shadow-2xl hover:border-green-500 border-slate-100'}`}
@@ -477,7 +477,7 @@ export default function AdminReports() {
             <p className="text-sm font-bold text-slate-400 leading-relaxed uppercase">Overtime calculation and weight points for individual employees.</p>
             {!selectedEmployee && <div className="mt-4 text-[10px] font-black text-red-500 uppercase italic">Select an employee to unlock</div>}
             {loadingReport2 && <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center font-black uppercase text-xs">Processing...</div>}
-          </button>
+          </button> */}
 
           <button
             onClick={handleGenerateReport3}

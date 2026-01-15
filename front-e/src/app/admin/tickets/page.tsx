@@ -75,11 +75,12 @@ export default function AdminTickets() {
     try {
       setLoading(true);
       let data: PageResponse<MainTicket>;
-      const allTickets = await ticketService.getByDateRange(selectedDate, selectedDate, { page, size: 10 });
+      // CHANGED: Increased from 10 to 25 tickets per page
+      const allTickets = await ticketService.getByDateRange(selectedDate, selectedDate, { page, size: 25 });
 
       if (statusFilter !== 'ALL') {
         const filteredContent = allTickets.content.filter(ticket => ticket.status === statusFilter);
-        data = { ...allTickets, content: filteredContent, totalElements: filteredContent.length, totalPages: Math.ceil(filteredContent.length / 10) };
+        data = { ...allTickets, content: filteredContent, totalElements: filteredContent.length, totalPages: Math.ceil(filteredContent.length / 25) };
       } else {
         data = allTickets;
       }
@@ -88,7 +89,7 @@ export default function AdminTickets() {
         const searchLower = generatorSearchTerm.toLowerCase();
         data.content = data.content.filter(ticket => ticket.generator.name.toLowerCase().includes(searchLower));
         data.totalElements = data.content.length;
-        data.totalPages = Math.ceil(data.content.length / 10);
+        data.totalPages = Math.ceil(data.content.length / 25);
       }
 
       const assignments: Record<number, User[]> = {};
@@ -114,7 +115,7 @@ export default function AdminTickets() {
       if (employeeFilter !== 'ALL') {
         data.content = filteredTickets;
         data.totalElements = filteredTickets.length;
-        data.totalPages = Math.ceil(filteredTickets.length / 10);
+        data.totalPages = Math.ceil(filteredTickets.length / 25);
       }
 
       setTickets(data);
@@ -270,7 +271,7 @@ export default function AdminTickets() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto space-y-8 pb-20">
+      <div className="max-w-7xl mx-auto space-y-6 pb-20">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
           <div>
@@ -330,51 +331,93 @@ export default function AdminTickets() {
           </div>
         </Card>
 
-        {/* Tickets Grid */}
-        <div className="grid grid-cols-1 gap-6">
+        {/* Tickets Grid - TWO COLUMNS */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {tickets && tickets.content.length > 0 ? (
             tickets.content.map((ticket) => (
-              <div key={ticket.id} className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-md hover:shadow-2xl transition-all group">
-                <div className="flex flex-col lg:flex-row justify-between gap-8">
-                  <div className="flex-1 space-y-6">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs font-black text-corporate-blue uppercase tracking-tighter bg-corporate-blue/10 px-3 py-1 rounded-lg">#{ticket.ticketNumber}</span>
-                          <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{ticket.type}</span>
-                        </div>
-                        <h3 className="text-2xl font-black text-slate-900 uppercase leading-tight group-hover:text-corporate-blue transition-colors">{ticket.title}</h3>
+              <div key={ticket.id} className="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-md hover:shadow-xl transition-all group">
+                <div className="space-y-4">
+                  {/* Header Row */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-black text-corporate-blue uppercase tracking-tighter bg-corporate-blue/10 px-3 py-1 rounded-lg">#{ticket.ticketNumber}</span>
+                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{ticket.type}</span>
                       </div>
-                      <div className="scale-110"><StatusBadge status={ticket.status} /></div>
+                      <h3 className="text-lg font-black text-slate-900 uppercase leading-tight group-hover:text-corporate-blue transition-colors">{ticket.title}</h3>
                     </div>
+                    <div className="scale-100"><StatusBadge status={ticket.status} /></div>
+                  </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50/80 p-6 rounded-[2rem] border border-slate-100">
-                      <div className="flex flex-col gap-1"><span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><MapPin size={12} /> Asset</span><span className="text-sm font-black text-slate-800">{ticket.generator.name}</span></div>
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Star size={12} /> Priority</span>
-                        <div className="flex gap-1">{[...Array(5)].map((_, i) => (<Star key={i} size={14} className={`${i < ticket.weight ? 'fill-yellow-400 text-yellow-400' : 'text-slate-200'}`} />))}</div>
+                  {/* Info Grid */}
+                  <div className="grid grid-cols-2 gap-4 bg-slate-50/80 p-4 rounded-xl border border-slate-100">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <MapPin size={12} /> Asset
+                      </span>
+                      <span className="text-sm font-black text-slate-800 truncate">{ticket.generator.name}</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <Star size={12} /> Priority
+                      </span>
+                      <div className="flex gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} size={12} className={`${i < ticket.weight ? 'fill-yellow-400 text-yellow-400' : 'text-slate-200'}`} />
+                        ))}
                       </div>
-                      <div className="flex flex-col gap-1"><span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Calendar size={12} /> Scheduled</span><span className="text-sm font-black text-slate-800">{formatDate(ticket.scheduledDate)}</span></div>
-                      <div className="flex flex-col gap-1"><span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Clock size={12} /> Time</span><span className="text-sm font-black text-slate-800">{ticket.scheduledTime}</span></div>
                     </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <Calendar size={12} /> Scheduled
+                      </span>
+                      <span className="text-sm font-black text-slate-800">{formatDate(ticket.scheduledDate)}</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <Clock size={12} /> Time
+                      </span>
+                      <span className="text-sm font-black text-slate-800">{ticket.scheduledTime}</span>
+                    </div>
+                  </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span className="text-xs font-black text-slate-400 uppercase tracking-widest mr-2">Personnel:</span>
+                  {/* Personnel */}
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Team:</span>
+                    <div className="flex flex-wrap gap-2">
                       {ticketAssignments[ticket.id]?.map((employee) => (
-                        <div key={employee.id} className="flex items-center gap-3 bg-white border border-slate-100 px-4 py-2 rounded-xl shadow-sm">
-                           <div className="w-6 h-6 bg-corporate-blue/10 rounded-full flex items-center justify-center text-corporate-blue"><UserIcon size={12} /></div>
-                           <span className="text-xs font-bold text-slate-700">{employee.fullName}</span>
+                        <div key={employee.id} className="flex items-center gap-2 bg-white border border-slate-100 px-3 py-1.5 rounded-lg shadow-sm">
+                          <div className="w-5 h-5 bg-corporate-blue/10 rounded-full flex items-center justify-center text-corporate-blue">
+                            <UserIcon size={10} />
+                          </div>
+                          <span className="text-xs font-bold text-slate-700">{employee.fullName}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <div className="flex flex-row lg:flex-col justify-end gap-3 border-t lg:border-t-0 lg:border-l border-slate-100 pt-6 lg:pt-0 lg:pl-8">
-                    <button onClick={() => router.push(`/admin/tickets/${ticket.id}`)} className="flex-1 lg:flex-none px-6 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs hover:bg-corporate-blue transition-all flex items-center justify-center gap-3">View Details <ChevronRight size={18} /></button>
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-3 border-t border-slate-100">
+                    <button 
+                      onClick={() => router.push(`/admin/tickets/${ticket.id}`)} 
+                      className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-xl font-black uppercase text-xs hover:bg-corporate-blue transition-all flex items-center justify-center gap-2"
+                    >
+                      View Details <ChevronRight size={16} />
+                    </button>
                     {ticket.status !== 'CANCEL' && ticket.status !== 'COMPLETED' && (
                       <>
-                        <button onClick={() => handleEdit(ticket)} className="px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black uppercase text-xs hover:bg-slate-200 transition-all">Edit</button>
-                        <button onClick={() => handleCancel(ticket.id)} className="px-6 py-4 bg-red-50 text-red-600 rounded-2xl font-black uppercase text-xs hover:bg-red-100 transition-all">Cancel</button>
+                        <button 
+                          onClick={() => handleEdit(ticket)} 
+                          className="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl font-black uppercase text-xs hover:bg-slate-200 transition-all"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => handleCancel(ticket.id)} 
+                          className="px-4 py-3 bg-red-50 text-red-600 rounded-xl font-black uppercase text-xs hover:bg-red-100 transition-all"
+                        >
+                          Cancel
+                        </button>
                       </>
                     )}
                   </div>
@@ -382,7 +425,7 @@ export default function AdminTickets() {
               </div>
             ))
           ) : (
-            <div className="bg-slate-50 border-4 border-dashed border-slate-200 rounded-[3rem] py-32 text-center">
+            <div className="col-span-2 bg-slate-50 border-4 border-dashed border-slate-200 rounded-[3rem] py-32 text-center">
                <ClipboardList size={60} className="mx-auto text-slate-200 mb-6" />
                <p className="text-sm font-black text-slate-400 uppercase tracking-[0.3em]">No Dispatches Logged for this period</p>
             </div>
@@ -392,7 +435,7 @@ export default function AdminTickets() {
         {tickets && <Pagination currentPage={currentPage} totalPages={tickets.totalPages} onPageChange={loadTickets} />}
       </div>
 
-      {/* --- MODAL --- */}
+      {/* --- MODAL --- (keeping the same size) */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col border border-white/20">
