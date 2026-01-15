@@ -45,8 +45,14 @@ apiClient.interceptors.response.use(
         } catch (refreshError) {
           // Refresh failed, logout
           localStorage.clear();
+          alert('Your session has expired. For security reasons, you will be redirected to the login page. Please sign in again.');
           window.location.href = '/login';
         }
+      } else {
+        // No refresh token available, logout
+        localStorage.clear();
+        alert('Your session has expired. For security reasons, you will be redirected to the login page. Please sign in again.');
+        window.location.href = '/login';
       }
     }
 
