@@ -721,7 +721,7 @@ export default function AdminReports() {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b-2 border-slate-100">
-                          {['Employee', 'Date', 'Work', 'Travel', 'OT', 'Jobs', 'Weight', 'Avg Score', 'Location Map'].map(h => (
+                          {['Employee', 'Date', 'Shift', 'Work', 'Travel', 'OT', 'Jobs', 'Weight', 'Avg Score', 'Location Map'].map(h => (
                             <th key={h} className="pb-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
                               {h}
                             </th>
@@ -735,6 +735,10 @@ export default function AdminReports() {
                             <tr key={i} className="hover:bg-purple-50/30 transition-colors">
                               <td className="py-6 text-sm font-black text-slate-900 uppercase">{row.employeeName}</td>
                               <td className="py-6 text-sm font-bold text-slate-600">{formatDateLabel(row.date)}</td>
+                              <td className="py-6">
+                                <div className="text-[10px] font-black text-purple-600 uppercase">{formatTime(row.startTime)}</div>
+                                <div className="text-[10px] font-black text-slate-300 uppercase">{formatTime(row.endTime)}</div>
+                              </td>
                               <td className="py-6 text-sm font-black text-purple-600">
                                 {formatMinutesLocal(row.dailyWorkingMinutes)}
                               </td>
